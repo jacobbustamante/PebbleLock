@@ -1,0 +1,19 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "jacobandrewbustamante@gmail.co",
+    "longName": "PebbleLock",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "shortName": "PebbleLock",
+    "uuid": "48a6834a-7374-4c32-b0c7-3fc1569bbd06",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
