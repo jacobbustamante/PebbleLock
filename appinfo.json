@@ -1,7 +1,13 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "A_DATA": 3,
+        "B_DATA": 2,
+        "FUNC_DATA": 0,
+        "KEY_DATA": 5,
+        "SALT_DATA": 1
+    },
     "capabilities": [
-        ""
+        "configurable"
     ],
     "companyName": "jacobandrewbustamante@gmail.co",
     "longName": "PebbleLock",
