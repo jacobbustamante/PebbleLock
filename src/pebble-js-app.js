@@ -5,41 +5,6 @@ var user_param_dict = {};
 
 Pebble.addEventListener('ready', function(e) {
   console.log('PebbleKit JS Ready!');
-
-  /*
-  sjcl.srp_user.init_exchange(user_param_dict, "alice", "password123");
-  console.log('srp init_exchange ' + user_param_dict.a);
-   
-  sjcl.srp_user.send_to_host(user_param_dict);
-  console.log('srp send_to_host ' + user_param_dict.A.toString());
-   
-  sjcl.srp_user.get_from_host(user_param_dict);
-  console.log('srp get_from_host ' + user_param_dict.B.toString());
-   
-  sjcl.srp_user.compute_u(user_param_dict);
-  console.log('srp compute_u ' + user_param_dict.u.toString());
-   
-  sjcl.srp_user.compute_S(user_param_dict);
-  console.log('srp compute_S ' + user_param_dict.S.toString());
-  console.log('srp compute_S ' + sjcl.bn.fromBits(user_param_dict.K).toString());
-   
-  // Construct a dictionary
-  var dict = {
-    //'KEY_DATA':'Hello from PebbleKit JS!'
-     'FUNC_DATA':"ready func",
-     'KEY_DATA':sjcl.bn.fromBits(user_param_dict.K).toString()
-  };
-
-  // Send a string to Pebble
-  Pebble.sendAppMessage(dict,
-    function(e) {
-      console.log('Send successful.');
-    },
-    function(e) {
-      console.log('Send failed!');
-    }
-  );
-  */
 });
 
 
@@ -63,6 +28,19 @@ Pebble.addEventListener('appmessage',
              },
              function(e) {
                 console.log('send_B: Send failed!');
+             }
+          );
+          break;
+       case "send_heartbeat":
+          dict = {
+             'FUNC_DATA':"heartbeat"
+          };
+          Pebble.sendAppMessage(dict,
+             function(e) {
+                console.log('send_heartbeat: Send successful.');
+             },
+             function(e) {
+                console.log('send_heartbeat: Send failed!');
              }
           );
           break;
@@ -91,6 +69,34 @@ Pebble.addEventListener('appmessage',
           break;
        case "sent_A":
           console.log("sent_A sent");
+          break;
+       case "heartbeat":
+          var time_str = e.payload.TIME_DATA;
+          var mac = new sjcl.misc.hmac(user_param_dict.S);
+          var out = sjcl.codec.hex.fromBits(mac.encrypt(time_str));
+          
+          dict = {
+             'FUNC_DATA':"beat",
+             'BEAT_DATA':out
+          };
+          Pebble.sendAppMessage(dict,
+             function(e) {
+                console.log('heartbeat: Send successful.');
+             },
+             function(e) {
+                console.log('heartbeat: Send failed!');
+             }
+          );
+          break;
+       case "beat":
+          var host_mac = new sjcl.misc.hmac(user_param_dict.S);
+          var beat = e.payload.BEAT_DATA;
+          var seconds = Math.floor(new Date() / 1000);
+          console.log('beat received on host: ' + beat);
+          for (var i = seconds - 3; i <= seconds; i++) {
+             console.log('time: ' + i.toString());
+             console.log('hmac time: ' + sjcl.codec.hex.fromBits(host_mac.encrypt(i.toString())));
+          }
     }
   }
 );

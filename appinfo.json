@@ -1,10 +1,11 @@
 {
     "appKeys": {
         "A_DATA": 3,
+        "BEAT_DATA": 4,
         "B_DATA": 2,
         "FUNC_DATA": 0,
-        "KEY_DATA": 5,
-        "SALT_DATA": 1
+        "SALT_DATA": 1,
+        "TIME_DATA": 5
     },
     "capabilities": [
         "configurable"

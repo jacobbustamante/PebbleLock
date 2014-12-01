@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include <time.h>
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed);
 static void update_time();
@@ -11,7 +12,8 @@ void send_A(char* A);
 #define SALT_DATA 1
 #define B_DATA 2
 #define A_DATA 3
-#define KEY_DATA 5
+#define BEAT_DATA 4
+#define TIME_DATA 5
 
 static Window *my_window;
 static TextLayer *text_layer;
@@ -41,18 +43,7 @@ static void update_time() {
   text_layer_set_text(text_layer, buffer);
 }
 
-void send_test() {
-   DictionaryIterator* iter;
-   AppMessageResult m_result = app_message_outbox_begin(&iter);
-   
-   if(m_result == APP_MSG_OK && iter != NULL) {
-      dict_write_cstring(iter, FUNC_DATA, "send_test dict");
-      app_message_outbox_send();
-   }
-   else {
-      APP_LOG(APP_LOG_LEVEL_ERROR, "send_test outbox_begin failed!");
-   }
-}
+
 void send_B() {
    DictionaryIterator* iter;
    AppMessageResult m_result = app_message_outbox_begin(&iter);
@@ -67,6 +58,22 @@ void send_B() {
    }
    else {
       APP_LOG(APP_LOG_LEVEL_ERROR, "send_B outbox_begin failed!");
+   }
+}
+void send_heartbeat() {
+   DictionaryIterator* iter;
+   AppMessageResult m_result = app_message_outbox_begin(&iter);
+   
+   while (m_result == APP_MSG_BUSY) {
+      m_result = app_message_outbox_begin(&iter);
+   }
+   
+   if(m_result == APP_MSG_OK && iter != NULL) {
+      dict_write_cstring(iter, FUNC_DATA, "send_heartbeat");
+      app_message_outbox_send();
+   }
+   else {
+      APP_LOG(APP_LOG_LEVEL_ERROR, "send_heartbeat outbox_begin failed!");
    }
 }
 
@@ -105,9 +112,33 @@ void send_A(char* A) {
    else {
       APP_LOG(APP_LOG_LEVEL_ERROR, "sent_A outbox_begin failed!");
    }
+   
+   // temp heartbeat test
+   send_heartbeat();
 }
 
 void heartbeat() {
+   DictionaryIterator* iter;
+   AppMessageResult m_result = app_message_outbox_begin(&iter);
+   char time_str[64];
+   time_t temp_time = time(NULL);
+   temp_time += 60*60*8;
+   snprintf(time_str, sizeof(time_str), "%d", (int)temp_time);
+   
+   while (m_result == APP_MSG_BUSY) {
+      m_result = app_message_outbox_begin(&iter);
+   }
+   
+   if(m_result == APP_MSG_OK && iter != NULL) {
+      dict_write_cstring(iter, FUNC_DATA, "heartbeat");
+      dict_write_cstring(iter, TIME_DATA, time_str);
+      app_message_outbox_send();
+   }
+   else {
+      APP_LOG(APP_LOG_LEVEL_ERROR, "heartbeat outbox_begin failed!");
+   }
+}
+void beat(char* beat) {
    DictionaryIterator* iter;
    AppMessageResult m_result = app_message_outbox_begin(&iter);
    
@@ -116,11 +147,12 @@ void heartbeat() {
    }
    
    if(m_result == APP_MSG_OK && iter != NULL) {
-      dict_write_cstring(iter, FUNC_DATA, "heartbeat");
+      dict_write_cstring(iter, FUNC_DATA, "beat");
+      dict_write_cstring(iter, BEAT_DATA, beat);
       app_message_outbox_send();
    }
    else {
-      APP_LOG(APP_LOG_LEVEL_ERROR, "heartbeat outbox_begin failed!");
+      APP_LOG(APP_LOG_LEVEL_ERROR, "beat outbox_begin failed!");
    }
 }
 
@@ -130,9 +162,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   char func_name[64];
   char B_buffer[512];
   char A_buffer[512];
-  //char *B_buffer = "0x39282FEABC3901";
   char salt_buffer[64];
-  //static char temp_buffer[128];
+  char beat_buffer[128];
+  time_t temp_time = time(NULL);
+  struct tm *tick_time = localtime(&temp_time);
 
   // Process all pairs present
   while (t != NULL) {
@@ -141,14 +174,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     // Process this pair's key
     switch (t->key) {
-      case KEY_DATA:
-        // Copy value and display
-        snprintf(s_buffer, sizeof(s_buffer), "Received '%s'", t->value->cstring);
-        text_layer_set_text(text_layer, s_buffer);
-        break;
       case FUNC_DATA:
         snprintf(s_buffer, sizeof(s_buffer), "Received '%s'", t->value->cstring);
         snprintf(func_name, sizeof(func_name), "%s", t->value->cstring);
+        temp_time += 60*60*8;
+        snprintf(s_buffer, sizeof(s_buffer), "%d", (int)temp_time);
+        //strftime(s_buffer, sizeof("00/00/00 00:00:00"), "%D %H:%M:%S", tick_time);
         text_layer_set_text(text_layer, s_buffer);
         break;
       case B_DATA:
@@ -159,6 +190,9 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         break;
       case A_DATA:
         snprintf(A_buffer, sizeof(A_buffer), "%s", t->value->cstring);
+        break;
+      case BEAT_DATA:
+        snprintf(beat_buffer, sizeof(beat_buffer), "%s", t->value->cstring);
         break;
       default:
         snprintf(s_buffer, sizeof(s_buffer), "Received unknown: '%s'", t->value->cstring);
@@ -177,7 +211,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
       send_A(A_buffer);  
    }
    else if (!strcmp(func_name, "heartbeat")) {  
-      
+      heartbeat();
+   }
+   else if (!strcmp(func_name, "beat")) {  
+      beat(beat_buffer);
    }
    
 }
