@@ -283,7 +283,7 @@ void handle_init(void) {
    //update_time();
    
    // initiate a fake phone send B
-   send_B();
+   //send_B();
 }
 
 void handle_deinit(void) {
