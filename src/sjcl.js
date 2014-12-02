@@ -127,8 +127,8 @@ sjcl.srp_user = {
     var k = sjcl.bn.fromBits(sjcl.hash.sha1.hash(sjcl.bitArray.concat(params.N.toBits(), params.g.toBits())));
       
     // takes a long time
-    //var part_1_1 = params.g.powermod(x, params.N);
-    var part_1_1 = new sjcl.bn("0x7e273de8696ffc4f4e337d05b4b375beb0dde1569e8fa00a9886d8129bada1f1822223ca1a605b530e379ba4729fdc59f105b4787e5186f5c671085a1447b52a48cf1970b4fb6f8400bbf4cebfbb168152e08ab5ea53d15c1aff87b2b9da6e04e058ad51cc72bfc9033b564e26480d78e955a5e29e7ab245db2be315e2099afb");
+    var part_1_1 = params.g.powermod(x, params.N);
+    //var part_1_1 = new sjcl.bn("0x7e273de8696ffc4f4e337d05b4b375beb0dde1569e8fa00a9886d8129bada1f1822223ca1a605b530e379ba4729fdc59f105b4787e5186f5c671085a1447b52a48cf1970b4fb6f8400bbf4cebfbb168152e08ab5ea53d15c1aff87b2b9da6e04e058ad51cc72bfc9033b564e26480d78e955a5e29e7ab245db2be315e2099afb");
       console.log('part_1_1: ' + part_1_1.toString());
     var part_1_2 = k.mulmod(part_1_1, params.N);
       console.log('part_1_2: ' + part_1_2.toString());
@@ -139,12 +139,14 @@ sjcl.srp_user = {
     var part_2_2 = part_2_1.add(params.a).normalize();
       console.log('part_2_2: ' + part_2_2.toString());
     // this kills it too
-    //var part_3 = part_1_2.powermod(part_2_2, params.N);
-    var part_3 = new sjcl.bn("0x2a4cc7584b80e40048adacd2ccc82e48649f36c844f51dda2fd2237e5701cf43b76c8b3ed4230a4a759ea281aef062b1a66fada1839e138921e99e3f3040a4b44c910ca7d5b35762ad8f502750307fb8c382ecce32f7b48a5515fb11bc6661a0c687b63a898c0c9b882b370aa30cb2d8b21ef1f22f46105ade090d8c3b0ff96d");
+    var part_3 = part_1_2.powermod(part_2_2, params.N);
+    //var part_3 = new sjcl.bn("0x2a4cc7584b80e40048adacd2ccc82e48649f36c844f51dda2fd2237e5701cf43b76c8b3ed4230a4a759ea281aef062b1a66fada1839e138921e99e3f3040a4b44c910ca7d5b35762ad8f502750307fb8c382ecce32f7b48a5515fb11bc6661a0c687b63a898c0c9b882b370aa30cb2d8b21ef1f22f46105ade090d8c3b0ff96d");
       console.log('part_3: ' + part_3.toString());
    
     params.S = part_3
     params.K = sjcl.hash.sha1.hash(params.S.toBits());
+      
+    console.log('Completed S calculation');
       // gets 0xeec81ae135faf54dc7e771f12a30d54778a82c6d 
     
     //params.S = params.B.sub(k.mulmod(params.g.powermod(x, params.N), params.N)).normalize().powermod(params.u.mulmod(x, params.N).add(params.a).normalize(), params.N);

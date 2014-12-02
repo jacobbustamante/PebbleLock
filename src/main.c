@@ -114,7 +114,7 @@ void send_A(char* A) {
    }
    
    // temp heartbeat test
-   send_heartbeat();
+   //send_heartbeat();
 }
 
 void heartbeat() {
@@ -166,11 +166,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   char beat_buffer[128];
   time_t temp_time = time(NULL);
   struct tm *tick_time = localtime(&temp_time);
+  static char s_buffer[64];
 
   // Process all pairs present
   while (t != NULL) {
     // Long lived buffer
-    static char s_buffer[64];
+
 
     // Process this pair's key
     switch (t->key) {
@@ -178,9 +179,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         snprintf(s_buffer, sizeof(s_buffer), "Received '%s'", t->value->cstring);
         snprintf(func_name, sizeof(func_name), "%s", t->value->cstring);
         temp_time += 60*60*8;
-        snprintf(s_buffer, sizeof(s_buffer), "%d", (int)temp_time);
-        //strftime(s_buffer, sizeof("00/00/00 00:00:00"), "%D %H:%M:%S", tick_time);
-        text_layer_set_text(text_layer, s_buffer);
+        //snprintf(s_buffer, sizeof(s_buffer), "PebbleLock\n\ngenerating key...");
+        //text_layer_set_text(text_layer, s_buffer);
         break;
       case B_DATA:
         snprintf(B_buffer, sizeof(B_buffer), "%s", t->value->cstring);
@@ -204,16 +204,23 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     t = dict_read_next(iterator);
   }
    
-   if (!strcmp(func_name, "sent_B")) {  
-      sent_B(B_buffer, salt_buffer);  
+   if (!strcmp(func_name, "sent_B")) {
+      snprintf(s_buffer, sizeof(s_buffer), "PebbleLock\n\ngenerating key...");
+      text_layer_set_text(text_layer, s_buffer);
+      sent_B(B_buffer, salt_buffer);
    }
    else if (!strcmp(func_name, "send_A")) {  
       send_A(A_buffer);  
+      snprintf(s_buffer, sizeof(s_buffer), "PebbleLock\n\nlistening...");
+      text_layer_set_text(text_layer, s_buffer);
    }
    else if (!strcmp(func_name, "heartbeat")) {  
       heartbeat();
    }
    else if (!strcmp(func_name, "beat")) {  
+      //snprintf(s_buffer, sizeof(s_buffer), "PebbleLock\nactive\n\nSent time %d", (int)temp_time);
+      strftime(s_buffer, sizeof("PebbleLock\nactive\n\nlast send time 00:00:00 "), "PebbleLock\nactive\n\nlast send time  %H:%M:%S", tick_time);
+      text_layer_set_text(text_layer, s_buffer);
       beat(beat_buffer);
    }
    
@@ -239,10 +246,10 @@ static void main_window_load(Window *window) {
 
   // Create output TextLayer
   text_layer = text_layer_create(GRect(5, 0, window_bounds.size.w - 5, window_bounds.size.h));
-  text_layer_set_font(text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  text_layer_set_font(text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28));
   text_layer_set_background_color(text_layer, GColorClear);
   text_layer_set_text_color(text_layer, GColorBlack);
-  text_layer_set_text(text_layer, "PebbleLock on standby...");
+  text_layer_set_text(text_layer, "PebbleLock\n\non standby...");
   //text_layer_set_text(text_layer, "Waiting...");
   text_layer_set_overflow_mode(text_layer, GTextOverflowModeWordWrap);
    
