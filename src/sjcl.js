@@ -87,7 +87,7 @@ sjcl.srp_user = {
     params.password = password;
 
     // "random" a
-    params.a = 4815;
+    params.a = Math.floor((Math.random() * 100000) + 1);
     params.A = params.g.powermod(params.a, params.N);
 },
 
