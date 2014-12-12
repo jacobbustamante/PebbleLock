@@ -76,7 +76,7 @@ Pebble.addEventListener('appmessage',
           break;
        case "heartbeat":
           var time_str = e.payload.TIME_DATA;
-          var mac = new sjcl.misc.hmac(user_param_dict.S);
+          var mac = new sjcl.misc.hmac(user_param_dict.K);
           var out = sjcl.codec.hex.fromBits(mac.encrypt(time_str));
           
           dict = {
@@ -93,7 +93,7 @@ Pebble.addEventListener('appmessage',
           );
           break;
        case "beat":
-          var host_mac = new sjcl.misc.hmac(user_param_dict.S);
+          var host_mac = new sjcl.misc.hmac(user_param_dict.K);
           var beat = e.payload.BEAT_DATA;
           var seconds = Math.floor(new Date() / 1000);
           console.log('beat received on host: ' + beat);

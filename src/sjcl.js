@@ -144,7 +144,7 @@ sjcl.srp_user = {
       console.log('part_3: ' + part_3.toString());
    
     params.S = part_3
-    params.K = sjcl.hash.sha1.hash(params.S.toBits());
+    params.K = sjcl.bn.fromBits(sjcl.hash.sha1.hash(params.S.toBits()));
       
     console.log('Completed S calculation');
       // gets 0xeec81ae135faf54dc7e771f12a30d54778a82c6d 
